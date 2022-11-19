@@ -1,25 +1,49 @@
-import { GoogleLoginButton } from "react-social-login-buttons";
-import { LoginSocialGoogle } from "reactjs-social-login";
+import React, { useState, useEffect } from 'react';
+import { GoogleLogin, GoogleLogout } from 'react-google-login';
+import { gapi } from 'gapi-script';
 
 function Login() {
-  return (
-    <div>
-      <LoginSocialGoogle
-        client_id={"712632343962-gfti1ov84rce7cm1ofq9cvphvbk2u0i6.apps.googleusercontent.com"}
-        scope="openid profile email"
-        discoveryDocs="claims_supported"
-        access_type="offline"
-        onResolve={({ provider, data }) => {
-          console.log(provider, data);
-        }}
-        onReject={(err) => {
-          console.log(err);
-        }}
-      >
-        <GoogleLoginButton />
-      </LoginSocialGoogle>
-    </div>
-  );
-}
+    const [ profile, setProfile ] = useState([]);
+    const clientId = '386932037035-k8v833noqjk7m4auae0t83vnkrqvvg3t.apps.googleusercontent.com';
+    useEffect(() => {
+        const initClient = () => {
+            gapi.client.init({
+                clientId: clientId,
+                scope: ''
+            });
+        };
+        gapi.load('client:auth2', initClient);
+    });
 
+    const onSuccess = (res) => {
+        setProfile(res.profileObj);
+    };
+
+    const onFailure = (err) => {
+        console.log('failed', err);
+    };
+
+    const logOut = () => {
+        setProfile(null);
+    };
+
+    return (
+        <div>
+            {profile ? (
+                <div>
+                    <GoogleLogout clientId={clientId} buttonText="Log out" onLogoutSuccess={logOut} />
+                </div>
+            ) : (
+                <GoogleLogin
+                    clientId={clientId}
+                    buttonText="Sign in with Google"
+                    onSuccess={onSuccess}
+                    onFailure={onFailure}
+                    cookiePolicy={'single_host_origin'}
+                    isSignedIn={true}
+                />
+            )}
+        </div>
+    );
+}
 export default Login;
